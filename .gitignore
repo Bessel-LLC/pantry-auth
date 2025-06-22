@@ -1,0 +1,7 @@
+.devcontainer
+.github
+dist
+node_modules
+package-lock.json
+.env
+workspaces
