@@ -10,16 +10,16 @@ import {
   HttpStatus,
   NotFoundException,
 } from '@nestjs/common';
-import { CreateUserUseCase } from '../../application/use-cases/create-user.use-case';
-import { GetUserByIdUseCase } from '../../application/use-cases/get-user-by-id.use-case';
-import { UpdateUserUseCase } from '../../application/use-cases/update-user.use-case';
-import { DeleteUserUseCase } from '../../application/use-cases/delete-user.use-case';
+import { CreateUserUseCase } from 'src/users/application/ports/input/create-user.use-case';
+import { GetUserByIdUseCase } from 'src/users/application/ports/input/get-user-by-id.use-case';
+import { UpdateUserUseCase } from 'src/users/application/ports/input/update-user.use-case';
+import { DeleteUserUseCase } from 'src/users/application/ports/input/delete-user.use-case';
 import {
   CreateUserDto,
   UpdateUserDto,
   UserResponseDto,
-} from '../dtos/create-user.dto';
-import { UserMapper } from '../mappers/user.mapper';
+} from '../../../../application/dtos/create-user.dto';
+import { UserMapper } from '../../outbound/mappers/user.mapper';
 
 @Controller('users')
 export class UserController {

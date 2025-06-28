@@ -1,31 +1,29 @@
 import { Exclude, Expose } from 'class-transformer';
 import { IsString, IsEmail, IsBoolean, IsDateString } from 'class-validator';
 
-
-@Exclude() 
+@Exclude()
 export class UserResponseDto {
-  @Expose() 
+  @Expose()
   @IsString()
   id!: string;
 
-  @Expose() 
+  @Expose()
   @IsString()
   name!: string;
 
-  @Expose() 
+  @Expose()
   @IsEmail()
   email!: string;
 
-  @Expose() 
+  @Expose()
   @IsBoolean()
   isActive!: boolean;
 
-  @Expose() 
+  @Expose()
   @IsDateString()
   createdAt!: Date;
 
-  @Expose() 
+  @Expose()
   @IsDateString()
   updatedAt!: Date;
-
 }

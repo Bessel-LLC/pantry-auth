@@ -1,8 +1,8 @@
 export class User {
-  id?: string; 
+  id?: string;
   name: string;
   email: string;
-  password?: string; 
+  password?: string;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -25,7 +25,6 @@ export class User {
     this.updatedAt = updatedAt;
   }
 
-  
   markAsInactive(): void {
     this.isActive = false;
     this.updatedAt = new Date();

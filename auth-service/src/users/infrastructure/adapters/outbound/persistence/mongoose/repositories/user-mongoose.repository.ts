@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { IUserRepository } from '../../../../domain/repositories/user.repository.interface';
-import { User } from '../../../../domain/entities/user.entity';
+import { IUserRepository } from '../../../../../../domain/repositories/user.repository.interface';
+import { User } from '../../../../../../domain/entities/user.entity';
 import { UserMongoose, UserDocument } from '../entities/user.schema';
 import { UserMapper } from '../../../mappers/user.mapper';
-
 
 @Injectable()
 export class UserMongooseRepository implements IUserRepository {
   constructor(
-    @InjectModel(UserMongoose.name) private readonly userModel: Model<UserDocument>,
+    @InjectModel(UserMongoose.name)
+    private readonly userModel: Model<UserDocument>,
   ) {}
 
   async create(user: User): Promise<User> {
@@ -35,16 +35,18 @@ export class UserMongooseRepository implements IUserRepository {
   }
 
   async update(id: string, user: Partial<User>): Promise<User | null> {
-    const updated = await this.userModel.findByIdAndUpdate(
-      id,
-      {
-        name: user.name,
-        email: user.email,        
-        isActive: user.isActive,
-        updatedAt: new Date(),
-      },
-      { new: true }, 
-    ).exec();
+    const updated = await this.userModel
+      .findByIdAndUpdate(
+        id,
+        {
+          name: user.name,
+          email: user.email,
+          isActive: user.isActive,
+          updatedAt: new Date(),
+        },
+        { new: true },
+      )
+      .exec();
     return updated ? UserMapper.toDomain(updated) : null;
   }
 

@@ -3,7 +3,7 @@ import { Document } from 'mongoose';
 
 export type UserDocument = UserMongoose & Document;
 
-@Schema({ timestamps: true }) 
+@Schema({ timestamps: true })
 export class UserMongoose {
   @Prop({ required: true })
   name!: string;
@@ -12,7 +12,7 @@ export class UserMongoose {
   email!: string;
 
   @Prop({ required: true })
-  password?: string; 
+  password?: string;
 
   @Prop({ default: true })
   isActive!: boolean;

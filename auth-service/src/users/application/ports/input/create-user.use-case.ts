@@ -1,14 +1,12 @@
 import { Injectable, Inject } from '@nestjs/common';
-import { IUserRepository } from '../../domain/repositories/user.repository.interface';
-import { User } from '../../domain/entities/user.entity';
-import { CreateUserDto } from '../../infrastructure/dtos/create-user.dto';
-import { USER_REPOSITORY } from '../../infrastructure/infrastructure.constants';
-
+import { CreateUserDto } from 'src/users/application/dtos/create-user.dto';
+import { IUserRepository } from 'src/users/domain/repositories/user.repository.interface';
+import { User } from 'src/users/domain/entities/user.entity';
+import { USER_REPOSITORY } from 'src/users/infrastructure/infrastructure.constants';
 
 @Injectable()
 export class CreateUserUseCase {
   constructor(
-    
     @Inject(USER_REPOSITORY) private readonly userRepository: IUserRepository,
   ) {}
 
@@ -18,7 +16,7 @@ export class CreateUserUseCase {
       createUserDto.email,
       createUserDto.password,
     );
-    
+
     return this.userRepository.create(newUser);
   }
 }
