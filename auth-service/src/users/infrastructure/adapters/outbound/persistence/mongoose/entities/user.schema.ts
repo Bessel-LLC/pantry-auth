@@ -17,6 +17,15 @@ export class UserMongoose {
   @Prop({ default: true })
   isActive!: boolean;
 
+  @Prop({ default: true })
+  isVerified: boolean;
+
+  @Prop({ default: true })
+  otp!: string;
+
+  @Prop({ default: true })
+  otpExpiresAt!: Date;
+
   @Prop({ default: Date.now })
   createdAt!: Date;
 

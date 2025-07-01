@@ -4,6 +4,9 @@ export class User {
   email: string;
   password?: string;
   isActive: boolean;
+  isVerified: boolean = false;
+  otp?: string | null;
+  otpExpiresAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 
@@ -12,6 +15,9 @@ export class User {
     email: string,
     password?: string,
     isActive: boolean = true,
+    isVerified: boolean = false,
+    otp?: string,
+    otpExpiresAt?: Date,
     createdAt: Date = new Date(),
     updatedAt: Date = new Date(),
     id?: string,
@@ -21,12 +27,16 @@ export class User {
     this.email = email;
     this.password = password;
     this.isActive = isActive;
+    this.isVerified = isVerified;
+    this.otp = otp;
+    this.otpExpiresAt = otpExpiresAt; 
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
   }
 
   markAsInactive(): void {
     this.isActive = false;
+    this.isVerified = false;
     this.updatedAt = new Date();
   }
 }

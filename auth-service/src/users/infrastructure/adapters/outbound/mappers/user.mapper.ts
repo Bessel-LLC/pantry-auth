@@ -11,6 +11,9 @@ export class UserMapper {
       userDocument.email!,
       userDocument.password,
       userDocument.isActive!,
+      userDocument.isVerified!,
+      userDocument.otp!,
+      userDocument.otpExpiresAt!,
       userDocument.createdAt!,
       userDocument.updatedAt!,
       (userDocument._id as Types.ObjectId).toString(),
@@ -23,6 +26,9 @@ export class UserMapper {
       email: user.email,
       password: user.password,
       isActive: user.isActive,
+      isVerified: user.isVerified,
+      otp: user.otp,
+      otpExpiresAt: user.otpExpiresAt,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
@@ -38,6 +44,9 @@ export class UserMapper {
     dto.name = user.name!;
     dto.email = user.email!;
     dto.isActive = user.isActive!;
+    //dto.isVerified = user.isActive!;
+    //dto.otp = user.otp;
+    //dto.otpExpiresAt = user.otpExpiresAt;
     dto.createdAt = user.createdAt!;
     dto.updatedAt = user.updatedAt!;
     return dto;

@@ -54,4 +54,9 @@ export class UserMongooseRepository implements IUserRepository {
     const result = await this.userModel.deleteOne({ _id: id }).exec();
     return result.deletedCount > 0;
   }
+
+  async save(user: User): Promise<User> {
+    await this.userModel.updateOne({ _id: user.id }, user, { upsert: true }).exec();
+    return user;
+  }
 }
