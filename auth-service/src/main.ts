@@ -10,12 +10,18 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
 
-  app.useGlobalPipes(new ValidationPipe()); //Para uso Global validador
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true, // Removes properties without decorators
+      forbidNonWhitelisted: true, // Throws an error if non-whitelisted properties are present
+      //transform: true, // Automatically transforms payloads to match the expected types
+    }),
+  ); //Para uso Global validador
   app.useGlobalFilters(new GlobalExceptionFilter());
 
   const config = new DocumentBuilder()
     .setTitle('Users API')
-    .setDescription('API para gestionar usuarios')
+    .setDescription('API to manage users')
     .setVersion('1.0')
     .addTag('users')
     .build();
@@ -24,11 +30,11 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   try {
-    const port = configService.get<number>('PORT') ?? 3000;
+    const port = configService.get<number>('PORT')!;
     await app.listen(port);
-    console.log(`Aplicación iniciada en el puerto ${port}`);
+    console.log(`Application started on port ${port}`);
   } catch (error) {
-    console.error('Error al iniciar la aplicación:', error.message);
+    console.error('Error starting the application:', error.message);
   }
 }
 bootstrap();
