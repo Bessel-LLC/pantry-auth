@@ -17,7 +17,7 @@ import { assertValidMongoId } from 'src/common/mongo-validation.common';
 export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
+  async create(createUserDto: CreateUserDto): Promise<UserDocument> {
     try {
       await this.verifyEmailIsAvailable(createUserDto.email);
 
@@ -28,7 +28,7 @@ export class UsersService {
       });
       return await createdUser.save();
     } catch (error) {
-      console.error('Error al crear usuario:', error);
+      console.error('Error creating user:', error);
       throw error;
     }
   }
@@ -37,61 +37,64 @@ export class UsersService {
     try {
       return await this.userModel.find().exec();
     } catch (error) {
-      console.error('Error al obtener usuarios:', error);
-      throw new InternalServerErrorException('Error al obtener los usuarios');
+      console.error('Error getting users', error);
+      throw new InternalServerErrorException('Error retrieving users');
     }
   }
 
   async findOne(id: string): Promise<User> {
     try {
-      assertValidMongoId(id);
-      const user = await this.userModel.findById(id).exec();
-      if (!user) {
-        throw new NotFoundException(`Usuario con id "${id}" no encontrado`);
-      }
-      return user;
+      return await this.findUserById(id);
     } catch (error) {
-      console.error(`Error al obtener usuario con id ${id}:`, error);
+      console.error(`Error retrieving user with id ${id}:`, error);
       throw error;
     }
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     try {
-      assertValidMongoId(id);
+      await this.findUserById(id);
       const updatedUser = await this.userModel
-        .findByIdAndUpdate(id, updateUserDto, {
-          new: true,
-        })
+        .findByIdAndUpdate(id, updateUserDto, { new: true })
         .exec();
-      if (!updatedUser) {
-        throw new NotFoundException(`Usuario con id "${id}" no encontrado`);
-      }
-      return updatedUser;
+      return updatedUser!;
     } catch (error) {
-      console.error(`Error al actualizar usuario con id ${id}:`, error);
+      console.error(`Error updating user with id ${id}:`, error);
       throw error;
     }
   }
 
   async remove(id: string): Promise<User> {
     try {
-      assertValidMongoId(id);
+      await this.findUserById(id);
       const deletedUser = await this.userModel.findByIdAndDelete(id).exec();
-      if (!deletedUser) {
-        throw new NotFoundException(`Usuario con id "${id}" no encontrado`);
-      }
-      return deletedUser;
+      return deletedUser!;
     } catch (error) {
-      console.error(`Error al eliminar usuario con id ${id}:`, error);
+      console.error(`Error deleting user with id ${id}:`, error);
       throw error;
     }
   }
 
   /**
+   * Finds a user by ID and throws a NotFoundException if the user does not exist.
+   *
+   * @param id - The ID of the user to retrieve.
+   * @returns The found user document.
+   * @throws NotFoundException - If no user is found with the given ID.
+   */
+  private async findUserById(id: string): Promise<User> {
+    assertValidMongoId(id);
+    const user = await this.userModel.findById(id).exec();
+    if (!user) {
+      throw new NotFoundException(`User with id "${id}" not found.`);
+    }
+    return user;
+  }
+
+  /**
    * Method that is called in SECURITY.SERVICE for email validation during login.
-   * @param email 
-   * @returns 
+   * @param email
+   * @returns
    */
   async findByEmail(email: string): Promise<UserDocument | null> {
     return this.userModel.findOne({ email }).exec();
@@ -99,28 +102,25 @@ export class UsersService {
 
   /**
    * Method for login
-   * @param email 
-   * @returns 
+   * @param email
+   * @returns
    */
   async verifyUserExists(email: string): Promise<UserDocument> {
     const user = await this.findByEmail(email);
     if (!user) {
-      throw new NotFoundException(`No existe usuario con email: ${email}`);
+      throw new NotFoundException(`No user exists with email: ${email}`);
     }
     return user;
   }
 
   /**
    * Method for signup
-   * @param email 
+   * @param email
    */
   async verifyEmailIsAvailable(email: string): Promise<void> {
     const user = await this.findByEmail(email);
     if (user) {
-      throw new ConflictException('Correo ya registrado');
+      throw new ConflictException('Email already registered');
     }
   }
-  
-  
-  
 }
