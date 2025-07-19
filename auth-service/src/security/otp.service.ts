@@ -10,7 +10,7 @@ import * as OTPAuth from 'otpauth';
 import { Otp } from './entities/otp.entity';
 import { OtpType } from 'src/common/otp-type.enum';
 import { ValidateOtpDto } from './dto/validate-otp.dto';
-import { isExpired } from 'src/common/time.utils';
+import { isExpired } from 'src/common/time_token.utils';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
@@ -96,7 +96,7 @@ export class OtpService {
       }
 
       const isOtpExpired = user.expiresAt && isExpired(user.expiresAt);
-      
+
       if (isOtpExpired) {
         await this.clearOtpData(user.id);
         return { success: false, message: 'OTP has expired' };

@@ -5,6 +5,7 @@ import { Model } from 'mongoose';
 import { UpdateTokenDto } from 'src/security/dto/update-token.dto';
 import { User, UserDocument } from './entities/user.entity';
 import { assertValidMongoId } from 'src/common/mongo-validation.common';
+import { getTokenExpirationDate } from 'src/common/time_token.utils';
 
 @Injectable()
 export class TokenService {
@@ -12,7 +13,7 @@ export class TokenService {
   async updateToken(id: string, updateTokenDto: UpdateTokenDto): Promise<User> {
     try {
       assertValidMongoId(id);
-      const expirationToken = new Date(Date.now() + 60 * 60 * 1000);
+      const expirationToken = getTokenExpirationDate();
 
       const updatedUser = await this.userModel
         .findByIdAndUpdate(

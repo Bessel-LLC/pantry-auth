@@ -41,7 +41,11 @@ export class UserProfileService {
         userId: new Types.ObjectId(userId),
         ...createUserProfileDto,
       });
-      return created.save();
+
+      const savedProfile = await created.save();
+      await this.usersService.update(userId, { isActive: true });
+
+      return savedProfile;
     } catch (error) {
       console.error('Error creating user information:', error);
       throw error;

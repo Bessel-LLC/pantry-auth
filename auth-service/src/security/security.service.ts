@@ -10,7 +10,7 @@ import { SignupDto } from './dto/signup.dto';
 import { MailerService } from 'src/mailer/mailer.service';
 import { OtpService } from './otp.service';
 import { ConfigService } from '@nestjs/config';
-import { getExpiryDate } from 'src/common/time.utils';
+import { getExpiryDate } from 'src/common/time_token.utils';
 
 @Injectable()
 export class SecurityService {
@@ -63,7 +63,6 @@ export class SecurityService {
     const expiresAt = getExpiryDate(this.otpExpirationMinutes); // Add two (2) minutes to date now
 
     const { otp, secret } = await this.otpService.generateOtp(user.email);
-
 
     await this.otpService.saveOtp(user.id, otp, expiresAt);
 
