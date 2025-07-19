@@ -8,6 +8,7 @@ import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { SecurityModule } from './security/security.module';
 import { EmailModule } from './email/email.module';
+import { UserProfileModule } from './user-profile/user-profile.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { EmailModule } from './email/email.module';
     UsersModule,
     SecurityModule,
     EmailModule,
+    UserProfileModule,
   ],
   controllers: [AppController],
   providers: [AppService],

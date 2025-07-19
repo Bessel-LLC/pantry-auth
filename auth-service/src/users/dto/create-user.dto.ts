@@ -8,6 +8,7 @@ import {
   MinLength,
   IsBoolean,
   IsNumber,
+  IsDate,
 } from 'class-validator';
 
 export class CreateUserDto {
@@ -45,6 +46,6 @@ export class CreateUserDto {
   token?: string;
 
   @IsOptional()
-  @IsNumber()
-  expirationToken?: number;
+  @IsDate()
+  expirationToken?: Date;
 }
