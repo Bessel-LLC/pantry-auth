@@ -8,6 +8,7 @@ import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { SecurityModule } from './security/security.module';
 import { MailerModule } from './mailer/mailer.module';
+import { UserProfileModule } from './user-profile/user-profile.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { MailerModule } from './mailer/mailer.module';
     UsersModule,
     SecurityModule,
     MailerModule,
+    UserProfileModule,
   ],
   controllers: [AppController],
   providers: [AppService],
