@@ -13,7 +13,7 @@ export class User {
   email: string;
 
   @ApiProperty({ example: 'phone', description: 'enter phone number' })
-  @Prop({ required: false, unique: true })
+  @Prop({ required: false, unique: false })
   phone: string;
 
   @Prop({ required: true })
