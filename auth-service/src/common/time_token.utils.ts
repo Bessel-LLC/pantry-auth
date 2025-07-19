@@ -20,6 +20,10 @@ export function isExpired(expiryDate: Date): boolean {
   return Date.now() >= expiryDate.getTime();
 }
 
+/**
+ * Returns the token expiration set to 1 hour
+ * @returns 
+ */
 export function getTokenExpirationDate(): Date {
   return new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 }
