@@ -1,18 +1,28 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-
+import * as Joi from 'joi';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { SecurityModule } from './security/security.module';
-import { EmailModule } from './email/email.module';
+import { MailerModule } from './mailer/mailer.module';
+import { UserProfileModule } from './user-profile/user-profile.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      validationSchema: Joi.object({
+        PORT: Joi.number().default(3000),
+        MONGODB_URI: Joi.string().uri().required(),
+        MAIL_USER: Joi.string().email().required(),
+        MAIL_PASS: Joi.string().min(3).required(),
+        JWT_SECRET: Joi.string().min(10).required(),
+        JWT_EXPIRES_IN: Joi.string().required(),
+        OTP_EXPIRATION_MINUTES: Joi.number().default(2).required(),
+      }),
     }),
 
     MongooseModule.forRootAsync({
@@ -25,7 +35,8 @@ import { EmailModule } from './email/email.module';
 
     UsersModule,
     SecurityModule,
-    EmailModule,
+    MailerModule,
+    UserProfileModule,
   ],
   controllers: [AppController],
   providers: [AppService],

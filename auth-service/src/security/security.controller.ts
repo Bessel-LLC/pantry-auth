@@ -5,10 +5,15 @@ import { SecurityService } from './security.service';
 import { LoginDto } from './dto/login.dto';
 import { UserResponseBodyDto } from 'src/users/dto/response-user.dto';
 import { SignupDto } from './dto/signup.dto';
+import { ValidateOtpDto } from './dto/validate-otp.dto';
+import { OtpService } from './otp.service';
 
 @Controller('security')
 export class SecurityController {
-  constructor(private securityService: SecurityService) {}
+  constructor(
+    private securityService: SecurityService,
+    private otpService: OtpService,
+  ) {}
 
   @Post('login')
   @ApiOperation({ summary: 'Logged in user' })
@@ -20,5 +25,10 @@ export class SecurityController {
   @Post('signup')
   async signUp(@Body() signupDto: SignupDto) {
     return this.securityService.signup(signupDto);
+  }
+
+  @Post('verify-otp')
+  async verifyOtp(@Body() validateOtpDto: ValidateOtpDto) {
+    return await this.otpService.validateOtp(validateOtpDto);
   }
 }

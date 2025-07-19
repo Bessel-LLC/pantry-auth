@@ -5,7 +5,7 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export type UserDocument = User & Document;
 
-@Schema({ timestamps: true })
+@Schema({ collection: 'users', timestamps: true })
 export class User {
   
   @ApiProperty({ example: 'juan@mail.com', description: 'enter email' })
@@ -13,7 +13,7 @@ export class User {
   email: string;
 
   @ApiProperty({ example: 'phone', description: 'enter phone number' })
-  @Prop({ required: false, unique: true })
+  @Prop({ required: false, unique: false })
   phone: string;
 
   @Prop({ required: true })
@@ -36,7 +36,7 @@ export class User {
   token: string;
 
   @Prop()
-  expirationToken: number; 
+  expirationToken: Date; 
 
   @Prop()
   createdAt: Date;
