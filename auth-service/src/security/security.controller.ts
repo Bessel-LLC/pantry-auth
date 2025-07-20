@@ -31,4 +31,9 @@ export class SecurityController {
   async verifyOtp(@Body() validateOtpDto: ValidateOtpDto) {
     return await this.otpService.validateOtp(validateOtpDto);
   }
+
+  /*@Post('resend-otp')
+  async resendOtp(@Body() validateOtpDto: ValidateOtpDto) {
+    return this.otpService.resendOtp(validateOtpDto);
+  }*/
 }

@@ -1,10 +1,11 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import * as OTPAuth from 'otpauth';
 
 import { Otp } from './entities/otp.entity';
@@ -65,15 +66,26 @@ export class OtpService {
   }
 
   private async clearOtpData(user_id: string): Promise<void> {
-    await this.otpModel.updateOne(
-      { user_id },
-      {
-        $set: {
-          otpCode: null,
-          expiresAt: null,
+    try {
+      const result = await this.otpModel.updateOne(
+        { user_id },
+        {
+          $set: {
+            otpCode: null,
+            expiresAt: null,
+          },
         },
-      },
-    );
+      );
+
+      if (!result.modifiedCount) {
+        throw new BadRequestException(
+          `No OTP data updated for user_id ${user_id}`,
+        );
+      }
+    } catch (error) {
+      console.error(`Error clearing OTP data for user_id ${user_id}:`, error);
+      throw error;
+    }
   }
 
   async validateOtp(
@@ -81,28 +93,26 @@ export class OtpService {
   ): Promise<{ success: boolean; message: string }> {
     try {
       const { user_id, otpCode } = validateOtpDto;
-      const user = await this.otpModel.findOne({ user_id });
+      const user_otp = await this.otpModel.findOne({ user_id });
 
-      if (!user) {
-        throw new NotFoundException('User not found');
+      if (!user_otp) {
+        throw new NotFoundException('user_otp not found');
       }
 
-      if (user.otpCode !== otpCode) {
+      if (user_otp.otpCode === null || user_otp.expiresAt === null) {
+        throw new UnauthorizedException('Try to resend OTP code first again');
+      }
+
+      if (user_otp.otpCode !== otpCode) {
         throw new UnauthorizedException('Invalid OTP');
       }
 
-      if (user.otpCode === null || user.expiresAt === null) {
-        throw new UnauthorizedException('Try to sign up first again');
-      }
+      const isOtpExpired = user_otp.expiresAt && isExpired(user_otp.expiresAt);
+      await this.clearOtpData(user_id);
 
-      const isOtpExpired = user.expiresAt && isExpired(user.expiresAt);
-      
       if (isOtpExpired) {
-        await this.clearOtpData(user.id);
         return { success: false, message: 'OTP has expired' };
       } else {
-        await this.clearOtpData(user.id);
-
         return { success: true, message: 'OTP successfully verified' };
       }
     } catch (error) {

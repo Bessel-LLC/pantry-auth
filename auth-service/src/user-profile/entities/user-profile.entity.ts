@@ -40,6 +40,12 @@ export class UserProfile {
   @Prop([String])
   alergies?: string[];
 
+  @Prop({ required: false })
+  languages: string;
+
+  @Prop({ required: false, unique: false })
+  phone: string;
+
   @Prop({ type: Types.ObjectId, ref: User.name, required: true })
   userId: Types.ObjectId;
 

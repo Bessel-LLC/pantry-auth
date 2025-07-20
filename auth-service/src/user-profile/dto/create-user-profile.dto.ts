@@ -1,5 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString, IsNumber, IsDateString, IsArray, ValidateNested } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsNumber,
+  IsDateString,
+  IsArray,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 class HealthGoalsDto {
@@ -63,5 +71,9 @@ export class CreateUserProfileDto {
   @IsString({ each: true })
   alergies?: string[];
 
-}
 
+  @ApiPropertyOptional({ example: 'English'})
+  @IsOptional()
+  @IsString()
+  language: string;
+}
