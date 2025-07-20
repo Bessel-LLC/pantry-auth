@@ -5,17 +5,26 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
 
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User, UserDocument } from './entities/user.entity';
 import { assertValidMongoId } from 'src/common/mongo-validation.common';
+import {
+  UserProfile,
+  UserProfileDocument,
+} from 'src/user-profile/entities/user-profile.entity';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+  constructor(
+    @InjectModel(User.name)
+    private userModel: Model<UserDocument>,
+    @InjectModel(UserProfile.name)
+    private profileModel: Model<UserProfileDocument>,
+  ) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserDocument> {
     try {
@@ -122,5 +131,21 @@ export class UsersService {
     if (user) {
       throw new ConflictException('Email already registered');
     }
+  }
+
+  async findOneWithProfile(userId: string): Promise<any> {
+    const user = await this.userModel.findById(userId).exec();
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    const profile = await this.profileModel
+      .findOne({ userId: new Types.ObjectId(userId) })
+      .exec();
+
+    return {
+      user,
+      profile: profile || null,
+    };
   }
 }

@@ -1,4 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Types } from 'mongoose';
 import { Document } from 'mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -36,6 +37,9 @@ export class User {
 
   @Prop()
   updatedAt: Date;
+
+  @Prop({ type: Types.ObjectId, ref: 'UserProfile' }) 
+  profile: Types.ObjectId;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

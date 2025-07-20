@@ -53,6 +53,17 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
+  @Get('handle/:id')
+  @ApiOperation({ summary: 'Get user by ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'User retrieved successfully',
+    type: User,
+  })
+  findOneWithProfile(@Param('id') id: string) {
+    return this.usersService.findOneWithProfile(id);
+  }
+
   @Patch(':id')
   @ApiOperation({ summary: 'Update user by ID' })
   @ApiResponse({

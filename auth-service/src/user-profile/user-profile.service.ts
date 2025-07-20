@@ -52,16 +52,22 @@ export class UserProfileService {
     }
   }
 
-  async findByUserId(userId: string): Promise<UserProfile | null> {
-    return this.profileModel.findOne({ userId }).exec();
+  async findByUserId(userId: string): Promise<UserProfile> {
+    const userProfileId = new Types.ObjectId(userId);
+    const profile = await this.profileModel.findOne({ userId: userProfileId }).exec();
+    if (!profile) {
+      throw new NotFoundException(`No profile found for userId: ${userId}`);
+    }
+    return profile;
   }
 
   async update(
     userId: string,
     updateUserProfileDto: UpdateUserProfileDto,
   ): Promise<UserProfile> {
+    const userProfileId = new Types.ObjectId(userId);
     const updated = await this.profileModel
-      .findOneAndUpdate({ userId }, updateUserProfileDto, { new: true })
+      .findOneAndUpdate({ userId: userProfileId }, updateUserProfileDto, { new: true })
       .exec();
     if (!updated) {
       throw new NotFoundException(`Profile for user ${userId} not found`);
