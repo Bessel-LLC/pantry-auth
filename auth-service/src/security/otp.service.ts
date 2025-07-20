@@ -11,7 +11,7 @@ import * as OTPAuth from 'otpauth';
 import { Otp } from './entities/otp.entity';
 import { OtpType } from 'src/common/otp-type.enum';
 import { ValidateOtpDto } from './dto/validate-otp.dto';
-import { isExpired } from 'src/common/time.utils';
+import { isExpired } from 'src/common/time_token.utils';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()

@@ -10,7 +10,7 @@ import { SignupDto } from './dto/signup.dto';
 import { MailerService } from 'src/mailer/mailer.service';
 import { OtpService } from './otp.service';
 import { ConfigService } from '@nestjs/config';
-import { getExpiryDate } from 'src/common/time.utils';
+import { getExpiryDate } from 'src/common/time_token.utils';
 
 @Injectable()
 export class SecurityService {
@@ -41,7 +41,7 @@ export class SecurityService {
     try {
       const user = await this.validateUser(loginDto.email, loginDto.password);
       if (!user) {
-        throw new UnauthorizedException('Email o contraseña incorrectos');
+        throw new UnauthorizedException('Invalid email or password');
       }
 
       const payload = { email: user.email, sub: user._id };
@@ -64,13 +64,12 @@ export class SecurityService {
 
     const { otp, secret } = await this.otpService.generateOtp(user.email);
 
-
     await this.otpService.saveOtp(user.id, otp, expiresAt);
 
     const { _id, password, __v, ...responseBody } = user.toObject();
     await this.mailerService.sendMail(
       user.email,
-      `Welcome to our platform.`,
+      `Welcome to Pantry AI.`,
       'Verification Code:',
       `<p>Hello <strong>${user.email}</strong>, thank you for signing up.</p>
       <h3>Your verification code is: ${otp}</h3>
