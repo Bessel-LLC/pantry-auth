@@ -1,13 +1,14 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Types } from 'mongoose';
 import { Document } from 'mongoose';
 import { ApiProperty } from '@nestjs/swagger';
 
+import { UserProfile } from 'src/user-profile/entities/user-profile.entity';
 
 export type UserDocument = User & Document;
 
 @Schema({ collection: 'users', timestamps: true })
 export class User {
-  
   @ApiProperty({ example: 'juan@mail.com', description: 'enter email' })
   @Prop({ required: true, unique: true })
   email: string;
@@ -25,7 +26,6 @@ export class User {
   @Prop()
   suscription_id: string;
 
-  
   @Prop({ default: false })
   isActive: boolean;
 
@@ -36,13 +36,16 @@ export class User {
   token: string;
 
   @Prop()
-  expirationToken: Date; 
+  expirationToken: Date;
 
   @Prop()
   createdAt: Date;
 
   @Prop()
   updatedAt: Date;
+
+  @Prop({ type: Types.ObjectId, ref: 'UserProfile' }) 
+  profile: Types.ObjectId;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
