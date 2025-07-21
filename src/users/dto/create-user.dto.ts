@@ -46,6 +46,10 @@ export class CreateUserDto {
   token?: string;
 
   @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @IsOptional()
   @IsDate()
   expirationToken?: Date;
 }

@@ -44,12 +44,10 @@ export class UserProfile {
   languages: string;
 
   @Prop({ required: false, unique: false })
-  phone: string;
+  phone?: string;
 
   @Prop({ type: Types.ObjectId, ref: User.name, required: true })
   userId: Types.ObjectId;
-
 }
 
 export const UserProfileSchema = SchemaFactory.createForClass(UserProfile);
-

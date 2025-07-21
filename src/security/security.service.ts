@@ -51,34 +51,48 @@ export class SecurityService {
 
       const { _id, password, __v, ...responseBody } = user.toObject();
 
-      return responseBody;
+      return {...responseBody, userId: _id };
     } catch (error) {
       throw error;
     }
   }
 
   async signup(signupDto: SignupDto) {
-    const user = await this.usersService.create(signupDto);
+    try {
+      const user = await this.usersService.create(signupDto);
+      const expiresAt = getExpiryDate(this.otpExpirationMinutes); // Add two (2) minutes to date now
 
-    const expiresAt = getExpiryDate(this.otpExpirationMinutes); // Add two (2) minutes to date now
+      const { otp, secret } = await this.otpService.generateOtp(user.email);
 
-    const { otp, secret } = await this.otpService.generateOtp(user.email);
+      try {
+        await this.otpService.saveOtp(user.id, otp, expiresAt);
 
-    await this.otpService.saveOtp(user.id, otp, expiresAt);
-
-    const { _id, password, __v, ...responseBody } = user.toObject();
-    await this.mailerService.sendMail(
-      user.email,
-      `Welcome to Pantry AI.`,
-      'Verification Code:',
-      `<p>Hello <strong>${user.email}</strong>, thank you for signing up.</p>
+        try {
+          const { _id, password, __v, ...responseBody } = user.toObject();
+          await this.mailerService.sendMail(
+            user.email,
+            `Welcome to Pantry AI.`,
+            'Verification Code:',
+            `<p>Hello <strong>${user.email}</strong>, thank you for signing up.</p>
       <h3>Your verification code is: ${otp}</h3>
       <p>This code will expire in ${this.otpExpirationMinutes} minutes.</p>`,
-    );
+          );
 
-    return {
-      message: 'User registered. An OTP code has been sent to the email.',
-      responseBody,
-    };
+          return {
+            message: 'User registered. An OTP code has been sent to the email.',
+            responseBody,
+          };
+        } catch (error) {
+          console.error('Error sending OTP email:', error);
+          throw new UnauthorizedException('Failed to send OTP email');
+        }
+      } catch (error) {
+        console.error('Error generating OTP:', error);
+        throw new UnauthorizedException('Failed to generate OTP');
+      }
+    } catch (error) {
+      console.error('Error during signup:', error);
+      throw error;
+    }
   }
 }
