@@ -48,6 +48,15 @@ export class UserProfile {
 
   @Prop({ type: Types.ObjectId, ref: User.name, required: true })
   userId: Types.ObjectId;
+
+  @Prop({ required: false, unique: false })
+  ruku_client_id?: string;
+
+  @Prop({ required: false, unique: false })
+  suscription_id?: string;
+
+  @Prop({ required: false, unique: false })
+  addressId?: string;
 }
 
 export const UserProfileSchema = SchemaFactory.createForClass(UserProfile);

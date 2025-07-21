@@ -76,4 +76,20 @@ export class CreateUserProfileDto {
   @IsOptional()
   @IsString()
   language: string;
+
+  @IsOptional()
+  @IsString()
+  ruku_client_id?: string;
+
+  @IsOptional()
+  @IsString()
+  suscription_id?: string;
+
+  @IsOptional()
+  @IsString()
+  addressId?: string;
+
+  @IsOptional()
+  @IsString()
+  phone?: string;
 }
