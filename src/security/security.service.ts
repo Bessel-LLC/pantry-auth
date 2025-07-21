@@ -80,7 +80,7 @@ export class SecurityService {
 
           return {
             message: 'User registered. An OTP code has been sent to the email.',
-            responseBody,
+            response: {...responseBody, userId: _id }
           };
         } catch (error) {
           console.error('Error sending OTP email:', error);
