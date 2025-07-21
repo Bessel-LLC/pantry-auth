@@ -30,7 +30,7 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   try {
-    const port = configService.get<number>('PORT')!;
+    const port = configService.get<number>('PORT')! || 3000;
     await app.listen(port);
     console.log(`Application started on port ${port}`);
   } catch (error) {

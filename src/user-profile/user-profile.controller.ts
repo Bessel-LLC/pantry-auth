@@ -12,7 +12,10 @@ export class UserProfileController {
   @Post(':userId')
   @ApiOperation({ summary: 'Create profile for user' })
   @ApiParam({ name: 'userId', description: 'User ID (Mongo ID)' })
-  create(@Param('userId') userId: string, @Body() createUserProfileDto: CreateUserProfileDto) {
+  create(
+    @Param('userId') userId: string,
+    @Body() createUserProfileDto: CreateUserProfileDto,
+  ) {
     return this.userProfileService.create(userId, createUserProfileDto);
   }
 
@@ -26,7 +29,10 @@ export class UserProfileController {
   @Put(':userId')
   @ApiOperation({ summary: 'Update profile by user ID' })
   @ApiParam({ name: 'userId', description: 'User ID (ID)' })
-  update(@Param('userId') userId: string, @Body() updateUserProfileDto: UpdateUserProfileDto) {
+  update(
+    @Param('userId') userId: string,
+    @Body() updateUserProfileDto: UpdateUserProfileDto,
+  ) {
     return this.userProfileService.update(userId, updateUserProfileDto);
   }
 }
