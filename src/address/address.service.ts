@@ -14,6 +14,7 @@ import {
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import { UsersService } from 'src/users/users.service';
+import { UserProfileService } from 'src/user-profile/user-profile.service';
 
 @Injectable()
 export class AddressService {
@@ -23,6 +24,8 @@ export class AddressService {
 
     @Inject(forwardRef(() => UsersService))
     private usersService: UsersService,
+    @Inject(forwardRef(() => UserProfileService))
+    private userProfileService: UserProfileService,
   ) {}
 
   async create(
@@ -40,9 +43,11 @@ export class AddressService {
         ...createAddressDto,
       });
 
+      const savedAddress = await created.save();
       await this.usersService.update(userId, { isActive: true });
+      await this.userProfileService.update(userId, { addressId: savedAddress._id as Types.ObjectId });
 
-      return await created.save();
+      return savedAddress;
     } catch (error) {
       console.error('Error creating address:', error);
       throw error;
