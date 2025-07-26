@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
+import { Address } from 'src/address/entities/address.entity';
 import { User } from 'src/users/entities/user.entity';
 
 export type UserProfileDocument = UserProfile & Document;
@@ -55,8 +56,11 @@ export class UserProfile {
   @Prop({ required: false, unique: false })
   suscription_id?: string;
 
-  @Prop({ required: false, unique: false })
-  addressId?: string;
+  @Prop({ type: Types.ObjectId, ref: Address.name, required: false })
+  addressId?: Types.ObjectId;
+  
+  @Prop({ default: true })
+  termsAccepted: boolean;
 }
 
 export const UserProfileSchema = SchemaFactory.createForClass(UserProfile);
