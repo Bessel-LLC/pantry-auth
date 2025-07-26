@@ -10,6 +10,7 @@ import { SecurityModule } from './security/security.module';
 import { MailerModule } from './mailer/mailer.module';
 import { UserProfileModule } from './user-profile/user-profile.module';
 import { AddressModule } from './address/address.module';
+import { RukuService } from './services/rukupay';
 
 @Module({
   imports: [

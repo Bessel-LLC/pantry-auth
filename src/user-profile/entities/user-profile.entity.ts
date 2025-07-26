@@ -58,6 +58,9 @@ export class UserProfile {
 
   @Prop({ type: Types.ObjectId, ref: Address.name, required: false })
   addressId?: Types.ObjectId;
+  
+  @Prop({ default: true })
+  termsAccepted: boolean;
 }
 
 export const UserProfileSchema = SchemaFactory.createForClass(UserProfile);
