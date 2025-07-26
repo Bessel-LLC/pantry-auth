@@ -14,12 +14,15 @@ import {
 import { CreateUserProfileDto } from './dto/create-user-profile.dto';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { UsersService } from 'src/users/users.service';
+import { RukuService } from 'src/services/rukupay';
 
 @Injectable()
 export class UserProfileService {
   constructor(
     @InjectModel(UserProfile.name)
     private profileModel: Model<UserProfileDocument>,
+
+    private rukuService: RukuService,
 
     @Inject(forwardRef(() => UsersService))
     private usersService: UsersService,
@@ -36,16 +39,30 @@ export class UserProfileService {
       }
 
       await this.verifyInformationIsAvailable(userId);
+      //create ruku id
+      try {
+        const fullname =
+          createUserProfileDto.name + createUserProfileDto.lastName;
 
-      const created = new this.profileModel({
-        userId: new Types.ObjectId(userId),
-        ...createUserProfileDto,
-      });
+        const response = await this.rukuService.createRukuCustomer({
+          name: fullname,
+          email: user.email,
+        });
+        console.log('rukuid ', response.id);
 
-      const savedProfile = await created.save();
-      await this.usersService.update(userId, { isActive: true });
+        const created = new this.profileModel({
+          userId: new Types.ObjectId(userId),
+          ...createUserProfileDto,
+            ruku_client_id: response.id,
+        });
+        console.log('created ', created);
+        const savedProfile = await created.save();
+        await this.usersService.update(userId, { isActive: true, ruku_client_id: response.id  });
 
-      return savedProfile;
+        return savedProfile;
+      } catch (error) {
+        return error;
+      }
     } catch (error) {
       console.error('Error creating user information:', error);
       throw error;

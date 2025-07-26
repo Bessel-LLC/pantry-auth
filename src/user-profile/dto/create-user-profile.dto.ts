@@ -9,6 +9,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
+import { Types } from 'mongoose';
 
 class HealthGoalsDto {
   @ApiPropertyOptional({ example: 2000 })
@@ -86,8 +87,7 @@ export class CreateUserProfileDto {
   suscription_id?: string;
 
   @IsOptional()
-  @IsString()
-  addressId?: string;
+  addressId?: Types.ObjectId;
 
   @IsOptional()
   @IsString()
