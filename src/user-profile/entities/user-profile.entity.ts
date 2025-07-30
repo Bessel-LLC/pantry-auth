@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 import { Address } from 'src/address/entities/address.entity';
 import { User } from 'src/users/entities/user.entity';
+import { Subscription } from 'src/subscriptions/entities/subscription.entity';
 
 export type UserProfileDocument = UserProfile & Document;
 
@@ -53,8 +54,8 @@ export class UserProfile {
   @Prop({ required: false, unique: false })
   ruku_client_id?: string;
 
-  @Prop({ required: false, unique: false })
-  suscription_id?: string;
+  @Prop({ type: Types.ObjectId, ref: Subscription.name, required: false })
+  subscriptionId?: string;
 
   @Prop({ type: Types.ObjectId, ref: Address.name, required: false })
   addressId?: Types.ObjectId;

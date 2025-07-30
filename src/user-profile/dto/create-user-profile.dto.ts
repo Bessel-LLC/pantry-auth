@@ -83,8 +83,7 @@ export class CreateUserProfileDto {
   ruku_client_id?: string;
 
   @IsOptional()
-  @IsString()
-  suscription_id?: string;
+  subscriptionId?: Types.ObjectId;
 
   @IsOptional()
   addressId?: Types.ObjectId;
