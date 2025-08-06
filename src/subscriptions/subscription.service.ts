@@ -50,10 +50,10 @@ export class SubscriptionService {
       const subscriptionData = {
         userId: new Types.ObjectId(userId),
         subscriptionTypeId: new Types.ObjectId(createSubscriptionDto.subscriptionTypeId),
-        status: createSubscriptionDto.status ?? true,
-        dateStarted: createSubscriptionDto.dateStarted ?? formattedDate,
+        status: createSubscriptionDto.status ?? true, 
+        dateStarted: createSubscriptionDto.dateStarted ?? formattedDate,  //YYYY-MM-DD format
         mealPlans: createSubscriptionDto.mealPlans ?? 0,
-        specialMeal: createSubscriptionDto.specialMeal ?? 0,
+        specialMeals: createSubscriptionDto.specialMeals ?? 0,
         healthyDrinks: createSubscriptionDto.healthyDrinks ?? 0,
         generateMeals: createSubscriptionDto.generateMeals ?? 0,
         dayOfTheMonth: createSubscriptionDto.dayOfTheMonth ?? now.getDate(),
@@ -92,7 +92,7 @@ export class SubscriptionService {
         status: updateSubscriptionDto.status,
         dateStarted: updateSubscriptionDto.dateStarted,
         mealPlans: updateSubscriptionDto.mealPlans,
-        specialMeal: updateSubscriptionDto.specialMeal,
+        specialMeals: updateSubscriptionDto.specialMeals,
         healthyDrinks: updateSubscriptionDto.healthyDrinks,
         generateMeals: updateSubscriptionDto.generateMeals,
         dayOfTheMonth: updateSubscriptionDto.dayOfTheMonth,

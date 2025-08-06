@@ -37,7 +37,7 @@ export class CreateSubscriptionDto {
   @ApiProperty()
   @IsOptional()
   @IsNumber()
-  specialMeal: number;
+  specialMeals: number;
 
   @ApiProperty()
   @IsOptional()

@@ -26,7 +26,7 @@ export class Subscription {
   mealPlans: number;
 
   @Prop({ required: true, unique: false  })
-  specialMeal: number;
+  specialMeals: number;
   
   @Prop({ required: true, unique: false  })
   healthyDrinks: number;
