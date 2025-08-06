@@ -38,6 +38,11 @@ export class AddressService {
         throw new NotFoundException(`No user found with userId: ${userId}`);
       }
 
+      const userProfile = await this.userProfileService.findByUserId(userId);
+      if (!userProfile) {
+        throw new NotFoundException(`No user profile found with userId: ${userId}`);
+      }
+
       const created = new this.addressModel({
         userId: new Types.ObjectId(userId),
         ...createAddressDto,
