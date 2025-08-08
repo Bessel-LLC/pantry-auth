@@ -72,8 +72,7 @@ export class CreateUserProfileDto {
   @IsString({ each: true })
   alergies?: string[];
 
-
-  @ApiPropertyOptional({ example: 'English'})
+  @ApiPropertyOptional({ example: 'English' })
   @IsOptional()
   @IsString()
   language: string;
@@ -91,4 +90,11 @@ export class CreateUserProfileDto {
   @IsOptional()
   @IsString()
   phone?: string;
+
+  @IsOptional()
+  @IsString()
+  phonePrefix?: string;
+  @IsOptional()
+  @IsString()
+  country?: string;
 }

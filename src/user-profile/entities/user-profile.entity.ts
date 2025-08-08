@@ -48,6 +48,12 @@ export class UserProfile {
   @Prop({ required: false, unique: false })
   phone?: string;
 
+  @Prop({ required: false, unique: false })
+  phonePrefix?: string;
+
+  @Prop({ required: false, unique: false })
+  country?: string;
+
   @Prop({ type: Types.ObjectId, ref: User.name, required: true })
   userId: Types.ObjectId;
 
