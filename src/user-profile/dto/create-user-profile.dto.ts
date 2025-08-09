@@ -17,15 +17,10 @@ class HealthGoalsDto {
   @IsNumber()
   dailyCaloriesGoal?: number;
 
-  @ApiPropertyOptional({ example: 3 })
-  @IsOptional()
-  @IsNumber()
-  mealsPerDay?: number;
-
   @ApiPropertyOptional({ example: 1 })
   @IsOptional()
-  @IsNumber()
-  personCount?: number;
+  @IsArray()
+  goals?: string[];
 }
 
 export class CreateUserProfileDto {

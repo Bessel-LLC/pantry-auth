@@ -24,17 +24,15 @@ export class UserProfile {
   birthday?: Date;
 
   @Prop({
-    type: {
-      dailyCaloriesGoal: { type: Number },
-      mealsPerDay: { type: Number },
-      personCount: { type: Number },
-    },
-  })
-  healthGoals?: {
-    dailyCaloriesGoal?: number;
-    mealsPerDay?: number;
-    personCount?: number;
-  };
+  type: {
+    dailyCaloriesGoal: { type: Number },
+    goals: { type: [String] },
+  },
+})
+healthGoals?: {
+  dailyCaloriesGoal?: number;
+  goals: string[];
+};
 
   @Prop([String])
   dietTypes?: string[];
