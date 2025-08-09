@@ -17,15 +17,10 @@ class HealthGoalsDto {
   @IsNumber()
   dailyCaloriesGoal?: number;
 
-  @ApiPropertyOptional({ example: 3 })
-  @IsOptional()
-  @IsNumber()
-  mealsPerDay?: number;
-
   @ApiPropertyOptional({ example: 1 })
   @IsOptional()
-  @IsNumber()
-  personCount?: number;
+  @IsArray()
+  goals?: string[];
 }
 
 export class CreateUserProfileDto {
@@ -72,8 +67,7 @@ export class CreateUserProfileDto {
   @IsString({ each: true })
   alergies?: string[];
 
-
-  @ApiPropertyOptional({ example: 'English'})
+  @ApiPropertyOptional({ example: 'English' })
   @IsOptional()
   @IsString()
   language: string;
@@ -83,8 +77,7 @@ export class CreateUserProfileDto {
   ruku_client_id?: string;
 
   @IsOptional()
-  @IsString()
-  suscription_id?: string;
+  subscriptionId?: Types.ObjectId;
 
   @IsOptional()
   addressId?: Types.ObjectId;
@@ -92,4 +85,11 @@ export class CreateUserProfileDto {
   @IsOptional()
   @IsString()
   phone?: string;
+
+  @IsOptional()
+  @IsString()
+  phonePrefix?: string;
+  @IsOptional()
+  @IsString()
+  country?: string;
 }

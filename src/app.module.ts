@@ -10,6 +10,8 @@ import { SecurityModule } from './security/security.module';
 import { MailerModule } from './mailer/mailer.module';
 import { UserProfileModule } from './user-profile/user-profile.module';
 import { AddressModule } from './address/address.module';
+import { SubscriptionTypeModule } from './subscription-types/subscription-type.module';
+import { SubscriptionModule } from './subscriptions/subscription.module';
 import { RukuService } from './services/rukupay';
 
 @Module({
@@ -39,7 +41,9 @@ import { RukuService } from './services/rukupay';
     SecurityModule,
     MailerModule,
     UserProfileModule,
-    AddressModule
+    AddressModule,
+    SubscriptionTypeModule,
+    SubscriptionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

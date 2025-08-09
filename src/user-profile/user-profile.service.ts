@@ -15,12 +15,15 @@ import { CreateUserProfileDto } from './dto/create-user-profile.dto';
 import { UpdateUserProfileDto } from './dto/update-user-profile.dto';
 import { UsersService } from 'src/users/users.service';
 import { RukuService } from 'src/services/rukupay';
+import { Pantry } from './entities/pantry.schema';
+import { CreatePantryDto } from './dto/create-pantry.dto';
 
 @Injectable()
 export class UserProfileService {
   constructor(
     @InjectModel(UserProfile.name)
     private profileModel: Model<UserProfileDocument>,
+    @InjectModel(Pantry.name) private pantryModel: Model<Pantry>,
 
     private rukuService: RukuService,
 
@@ -31,7 +34,7 @@ export class UserProfileService {
   async create(
     userId: string,
     createUserProfileDto: CreateUserProfileDto,
-  ): Promise<UserProfile> {
+  ): Promise<UserProfile | any> {
     try {
       const user = await this.usersService.findOne(userId);
       if (!user) {
@@ -48,24 +51,45 @@ export class UserProfileService {
           name: fullname,
           email: user.email,
         });
+        console.log('result ruku service ', response);
         console.log('rukuid ', response.id);
 
         const created = new this.profileModel({
           userId: new Types.ObjectId(userId),
           ...createUserProfileDto,
-            ruku_client_id: response.id,
+          ruku_client_id: response.id,
         });
         console.log('created ', created);
         const savedProfile = await created.save();
-        await this.usersService.update(userId, { isActive: true, ruku_client_id: response.id  });
+        await this.usersService.update(userId, {
+          isActive: true,
+          ruku_client_id: response.id,
+        });
 
-        return savedProfile;
+        ///create a pantry for the user
+        const pantrydto: CreatePantryDto = {
+          user_id: userId,
+          ingredients: [],
+        };
+        const pantry = new this.pantryModel(pantrydto);
+        await pantry.save();
+
+        return {
+          responseCode: '01',
+          profile: savedProfile
+        }
+        
+        ;
       } catch (error) {
         return error;
       }
     } catch (error) {
       console.error('Error creating user information:', error);
-      throw error;
+      
+       return {
+          responseCode: '02',
+          error: error
+        }
     }
   }
 
