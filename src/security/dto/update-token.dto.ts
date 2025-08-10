@@ -1,11 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsDate } from 'class-validator';
+import { IsString, IsDate, IsOptional, IsString as IsStringType, IsDate as IsDateType } from 'class-validator';
 
 export class UpdateTokenDto {
-  @ApiProperty({ example: 'jwt_token_here', description: 'JWT access token' })
+  @ApiProperty({ example: 'jwt_token_here', description: 'JWT access token', required: false, nullable: true })
+  @IsOptional()
   @IsString()
-  token: string;
+  token?: string | null;
 
-  @ApiProperty({ example: new Date(), description: 'Expiration date for token' })
-  expirationToken?: Date;
+  @ApiProperty({ example: new Date(), description: 'Expiration date for token', required: false, nullable: true })
+  @IsOptional()
+  expirationToken?: Date | null;
 }

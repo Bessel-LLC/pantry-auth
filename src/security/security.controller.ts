@@ -7,6 +7,7 @@ import { UserResponseBodyDto } from 'src/users/dto/response-user.dto';
 import { SignupDto } from './dto/signup.dto';
 import { ValidateOtpDto } from './dto/validate-otp.dto';
 import { OtpService } from './otp.service';
+import { LogoutDto } from './dto/logout.dto';
 
 @Controller('security')
 export class SecurityController {
@@ -36,4 +37,9 @@ export class SecurityController {
   async resendOtp(@Body() validateOtpDto: ValidateOtpDto) {
     return this.otpService.resendOtp(validateOtpDto);
   }*/
+
+  @Post('logout')
+  async logout(@Body() logoutDto: LogoutDto) {
+    return this.securityService.logout(logoutDto.userId);
+  }
 }

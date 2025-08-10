@@ -95,4 +95,13 @@ export class SecurityService {
       throw error;
     }
   }
+  async logout(userId: string) {
+    // Set the user's token and expirationToken to null
+    try {
+      await this.tokenService.updateToken(userId, { token: null, expirationToken: null });
+      return { message: 'User logged out successfully.' };
+    } catch (error) {
+      throw error;
+    }
+  }
 }

@@ -13,15 +13,21 @@ export class TokenService {
   async updateToken(id: string, updateTokenDto: UpdateTokenDto): Promise<User> {
     try {
       assertValidMongoId(id);
-      const expirationToken = getTokenExpirationDate();
+      // If token or expirationToken is explicitly set to null, do not generate a new expiration date
+      const updateFields: any = {};
+      if (Object.prototype.hasOwnProperty.call(updateTokenDto, 'token')) {
+        updateFields.token = updateTokenDto.token;
+      }
+      if (Object.prototype.hasOwnProperty.call(updateTokenDto, 'expirationToken')) {
+        updateFields.expirationToken = updateTokenDto.expirationToken;
+      } else if (updateTokenDto.token) {
+        updateFields.expirationToken = getTokenExpirationDate();
+      }
 
       const updatedUser = await this.userModel
         .findByIdAndUpdate(
           id,
-          {
-            token: updateTokenDto.token,
-            expirationToken,
-          },
+          updateFields,
           { new: true },
         )
         .exec();
