@@ -17,6 +17,11 @@ export class SubscriptionTypeController {
     return this.subscriptionTypeService.create(createSubscriptionTypeDto);
   }
 
+  @Get('/all')
+  @ApiOperation({ summary: 'Get All Subscription Types' })
+  findAll() {
+    return this.subscriptionTypeService.getAll();
+  }
   @Get(':id')
   @ApiOperation({ summary: 'Get Subscription Type by its ID' })
   @ApiParam({ name: 'id', description: 'Subscription Type ID (ID)' })
