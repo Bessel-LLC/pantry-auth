@@ -10,7 +10,8 @@ import { getTokenExpirationDate } from 'src/common/time_token.utils';
 @Injectable()
 export class TokenService {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
-  async updateToken(id: string, updateTokenDto: UpdateTokenDto): Promise<User> {
+
+  async updateToken(id: string, updateTokenDto: UpdateTokenDto): Promise<UserDocument> {
     try {
       assertValidMongoId(id);
       const expirationToken = getTokenExpirationDate();
@@ -35,5 +36,9 @@ export class TokenService {
       console.error(`Error updating token for user id ${id}:`, error);
       throw error;
     }
+  }
+
+  async findTokenByUserId(userId: string): Promise<User | null> {
+    return this.userModel.findOne({ _id: userId }).exec();
   }
 }

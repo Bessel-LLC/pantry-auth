@@ -23,8 +23,9 @@ async function bootstrap() {
       whitelist: true, // Removes properties without decorators
       forbidNonWhitelisted: true, // Throws an error if non-whitelisted properties are present
       //transform: true, // Automatically transforms payloads to match the expected types
+      stopAtFirstError: true
     }),
-  ); //Para uso Global validador
+  ); // Global validador
   app.useGlobalFilters(new GlobalExceptionFilter());
 
   const config = new DocumentBuilder()
@@ -39,7 +40,7 @@ async function bootstrap() {
 
   try {
     const port = configService.get<number>('PORT')! || 3000;
-    await app.listen(port);
+    await app.listen(port, '0.0.0.0');
     console.log(`Application started on port ${port}`);
   } catch (error) {
     console.error('Error starting the application:', error.message);

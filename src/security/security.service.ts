@@ -1,5 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 
 import { UsersService } from '../users/users.service';
@@ -11,6 +10,8 @@ import { MailerService } from 'src/mailer/mailer.service';
 import { OtpService } from './otp.service';
 import { ConfigService } from '@nestjs/config';
 import { getExpiryDate } from 'src/common/time_token.utils';
+import { PasswordDto } from './dto/password.dto';
+import { AuthService } from './auth.service';
 
 @Injectable()
 export class SecurityService {
@@ -18,7 +19,7 @@ export class SecurityService {
 
   constructor(
     private usersService: UsersService,
-    private jwtService: JwtService,
+    private authService: AuthService,
     private tokenService: TokenService,
     private mailerService: MailerService,
     private otpService: OtpService,
@@ -31,27 +32,34 @@ export class SecurityService {
   }
 
   async validateUser(email: string, password: string) {
-    const user = await this.usersService.verifyUserExists(email);
-    if (user && (await bcrypt.compare(password, user.password))) {
-      return user;
+    try {
+      const user = await this.usersService.verifyUserExists(email); 
+  
+      if (user && (await bcrypt.compare(password, user.password))) {
+        return user;
+      }  
+      throw new UnauthorizedException('Invalid password');
+
+    } catch (error) {
+      console.log(error)
+      throw error;
     }
   }
+  
 
   async login(loginDto: LoginDto): Promise<UserResponseBodyDto> {
     try {
       const user = await this.validateUser(loginDto.email, loginDto.password);
-      if (!user) {
-        throw new UnauthorizedException('Invalid email or password');
-      }
 
-      const payload = { email: user.email, sub: user._id };
-      const access_token = this.jwtService.sign(payload);
+      const payload = { email: user.email, sub: user.id };
+      const access_token = this.authService.generateToken(payload);
 
-      await this.tokenService.updateToken(user.id, { token: access_token });
+      const updatedUser = await this.tokenService.updateToken(user.id, { token: access_token });
 
-      const { _id, password, __v, ...responseBody } = user.toObject();
+      const { _id, password, __v, ...responseBody } = updatedUser.toObject();
 
       return {...responseBody, userId: _id };
+
     } catch (error) {
       throw error;
     }
@@ -92,6 +100,41 @@ export class SecurityService {
       }
     } catch (error) {
       console.error('Error during signup:', error);
+      throw error;
+    }
+  }
+
+  async updatePassword(passwordDto: PasswordDto): Promise<{ message: string, user: UserResponseBodyDto }> {
+    try {
+      const { password, newPassword, confirmPassword, access_token } = passwordDto;
+
+      const decodedToken = this.authService.verifyToken(access_token)
+      const user = await this.validateUser(decodedToken.email, password);
+
+      if (newPassword !== confirmPassword) {
+        throw new BadRequestException('Passwords do not match');
+      }
+
+      const storedUser = await this.tokenService.findTokenByUserId(user.id);
+      if (!storedUser) {
+        throw new UnauthorizedException('Token not found for user with ID ${user.id}');
+      }
+      if (storedUser.token !== access_token) {
+        throw new UnauthorizedException('Token does not match the stored token');
+      }
+
+      try {
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
+      } catch (error) {
+        throw error;
+      }
+      await user.save();
+
+      const { _id, __v, ...responseBody } = user.toObject();
+
+      return { message: 'Password updated successfully', ...responseBody, userId: _id };
+    } catch (error) {
       throw error;
     }
   }
