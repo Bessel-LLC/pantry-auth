@@ -11,8 +11,11 @@ import * as OTPAuth from 'otpauth';
 import { Otp } from './entities/otp.entity';
 import { OtpType } from 'src/common/otp-type.enum';
 import { ValidateOtpDto } from './dto/validate-otp.dto';
-import { isExpired } from 'src/common/time_token.utils';
+import { getExpiryDate, isExpired } from 'src/common/time_token.utils';
 import { ConfigService } from '@nestjs/config';
+import { ResendOtpDto } from './dto/resendotp.dto';
+import { UsersService } from 'src/users/users.service';
+import { MailerService } from 'src/mailer/mailer.service';
 
 @Injectable()
 export class OtpService {
@@ -21,6 +24,8 @@ export class OtpService {
   constructor(
     @InjectModel(Otp.name) private otpModel: Model<Otp>,
     private configService: ConfigService,
+    private usersService: UsersService,
+    private mailerService: MailerService,
   ) {
     this.otpExpirationMinutes = parseInt(
       this.configService.get<string>('OTP_EXPIRATION_MINUTES')!,
@@ -86,6 +91,54 @@ export class OtpService {
       console.error(`Error clearing OTP data for user_id ${user_id}:`, error);
       throw error;
     }
+  }
+
+  async resendOtp(
+    resendOtp: ResendOtpDto,
+  ): Promise<{ success: boolean; message: string }> {
+    const { user_id } = resendOtp;
+    //find existing user
+    const user = await this.usersService.findOne(user_id);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    const user_otp = await this.otpModel.findOne({ user_id });
+    if (!user_otp) {
+      throw new NotFoundException('user_otp not found');
+    }
+    //delete existing otp
+    await this.otpModel.findOneAndDelete({user_id: user_id});
+    //create new otp
+    const expiresAt = getExpiryDate(this.otpExpirationMinutes); // Add two (2) minutes to date now
+    const { otp, secret } = await this.generateOtp(user.email);
+    try {
+      await this.saveOtp(user_id, otp, expiresAt);
+
+      try {
+        await this.mailerService.sendMail(
+          user.email,
+          `Pantry AI - Verify Your Account`,
+          'Account Verification Code',
+          `<p>Hello <strong>${user.email}</strong>,</p>
+   <p>To complete your registration, please use the following One-Time Password (OTP) to verify your account:</p>
+   <h3>${otp}</h3>
+   <p>This code will expire in ${this.otpExpirationMinutes} minutes. If you didn’t request this, please ignore this email.</p>`,
+        );
+
+        return {
+          success: true,
+          message: `OTP sent successfully to your email`,
+        };
+      } catch (error) {
+        console.error('Error sending OTP email:', error);
+        throw new UnauthorizedException('Failed to send OTP email');
+      }
+    } catch (error) {
+      console.error('Error generating OTP:', error);
+      throw new UnauthorizedException('Failed to generate OTP');
+    }
+
+    return { success: false, message: 'Failed to resend OTP' };
   }
 
   async validateOtp(

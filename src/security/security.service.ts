@@ -11,6 +11,7 @@ import { MailerService } from 'src/mailer/mailer.service';
 import { OtpService } from './otp.service';
 import { ConfigService } from '@nestjs/config';
 import { getExpiryDate } from 'src/common/time_token.utils';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Injectable()
 export class SecurityService {
@@ -94,5 +95,19 @@ export class SecurityService {
       console.error('Error during signup:', error);
       throw error;
     }
+  }
+  async updatePassword(updatePasswordDto: UpdatePasswordDto) {
+    const { user_id: userId, oldPassword, newPassword } = updatePasswordDto;
+    const user = await this.usersService.findOne(userId);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    const isOldPasswordValid = await bcrypt.compare(oldPassword, user.password);
+    if (!isOldPasswordValid) {
+      throw new UnauthorizedException('Old password is incorrect');
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await this.usersService.update(userId, { password: hashedPassword });
+    return { message: 'Password updated successfully', success: true};
   }
 }
