@@ -1,4 +1,4 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Param } from '@nestjs/common';
 import { ApiOperation } from '@nestjs/swagger';
 
 import { SecurityService } from './security.service';
@@ -9,6 +9,9 @@ import { ValidateOtpDto } from './dto/validate-otp.dto';
 import { OtpService } from './otp.service';
 import { ResendOtpDto } from './dto/resendotp.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
+import { RequestOtpDto } from './dto/request-otp.dto';
+import { ValidateOtpRecoverDto } from './dto/validateotp.dto';
+import { RecoverPasswordDto } from './dto/recover-password.dto';
 
 @Controller('security')
 export class SecurityController {
@@ -35,12 +38,32 @@ export class SecurityController {
   }
 
   @Post('resend-otp')
-  async resendOtp(@Body() validateOtpDto: ResendOtpDto) {
+  async resendRecoverOtp(@Body() validateOtpDto: ResendOtpDto) {
     return this.otpService.resendOtp(validateOtpDto);
   }
 
   @Post('update-password')
   async updatePassword(@Body() updatePasswordDto: UpdatePasswordDto) {
     return this.securityService.updatePassword(updatePasswordDto);
+  }
+  //recover-password
+  @Post('request-otp')
+  requestOtp(@Body() dto: RequestOtpDto) {
+    return this.securityService.requestOtp(dto);
+  }
+
+  @Post('resend-otp/:userId')
+  resendOtp(@Param('userId') userId: string) {
+    return this.securityService.resendOtpRecoverPassword(userId);
+  }
+
+  @Post('validate-otp')
+  validateOtp(@Body() dto: ValidateOtpRecoverDto) {
+    return this.securityService.validateOtp(dto);
+  }
+
+  @Post('recover-password')
+  recoverPassword(@Body() dto: RecoverPasswordDto) {
+    return this.securityService.recoverPassword(dto);
   }
 }
