@@ -8,6 +8,7 @@ import { SignupDto } from './dto/signup.dto';
 import { ValidateOtpDto } from './dto/validate-otp.dto';
 import { OtpService } from './otp.service';
 import { ResendOtpDto } from './dto/resendotp.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Controller('security')
 export class SecurityController {
@@ -36,5 +37,10 @@ export class SecurityController {
   @Post('resend-otp')
   async resendOtp(@Body() validateOtpDto: ResendOtpDto) {
     return this.otpService.resendOtp(validateOtpDto);
+  }
+
+  @Post('update-password')
+  async updatePassword(@Body() updatePasswordDto: UpdatePasswordDto) {
+    return this.securityService.updatePassword(updatePasswordDto);
   }
 }
