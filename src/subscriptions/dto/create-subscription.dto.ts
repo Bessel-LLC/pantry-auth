@@ -48,4 +48,9 @@ export class CreateSubscriptionDto {
   @IsOptional()
   @IsNumber()
   generateMeals: number;
+
+  @ApiProperty()
+  @IsOptional()
+  rukusubscriptionID: string
+
 }

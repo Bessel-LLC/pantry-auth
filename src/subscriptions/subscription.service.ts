@@ -15,13 +15,21 @@ import { CreateSubscriptionDto } from './dto/create-subscription.dto';
 import { UpdateSubscriptionDto } from './dto/update-subscription.dto';
 import { UsersService } from 'src/users/users.service';
 import { UserProfileService } from 'src/user-profile/user-profile.service';
+import { ConfigService } from '@nestjs/config';
+import {
+  SubscriptionType,
+  SubscriptionTypeDocument,
+} from 'src/subscription-types/entities/subscription-type.entity';
+import axios from 'axios';
 
 @Injectable()
 export class SubscriptionService {
   constructor(
     @InjectModel(Subscription.name)
     private subscriptionModel: Model<SubscriptionDocument>,
-
+    @InjectModel(SubscriptionType.name)
+    private subscriptionTypeModel: Model<SubscriptionTypeDocument>,
+    private readonly configService: ConfigService,
     @Inject(forwardRef(() => UsersService))
     private usersService: UsersService,
     @Inject(forwardRef(() => UserProfileService))
@@ -39,7 +47,9 @@ export class SubscriptionService {
       }
       const userProfile = await this.userProfileService.findByUserId(userId);
       if (!userProfile) {
-        throw new NotFoundException(`No user profile found with userId: ${userId}`);
+        throw new NotFoundException(
+          `No user profile found with userId: ${userId}`,
+        );
       }
 
       await this.verifySubscriptionIsAvailable(userId);
@@ -49,21 +59,27 @@ export class SubscriptionService {
 
       const subscriptionData = {
         userId: new Types.ObjectId(userId),
-        subscriptionTypeId: new Types.ObjectId(createSubscriptionDto.subscriptionTypeId),
-        status: createSubscriptionDto.status ?? true, 
-        dateStarted: createSubscriptionDto.dateStarted ?? formattedDate,  //YYYY-MM-DD format
+        subscriptionTypeId: new Types.ObjectId(
+          createSubscriptionDto.subscriptionTypeId,
+        ),
+        status: createSubscriptionDto.status ?? true,
+        dateStarted: createSubscriptionDto.dateStarted ?? formattedDate, //YYYY-MM-DD format
         mealPlans: createSubscriptionDto.mealPlans ?? 0,
         specialMeals: createSubscriptionDto.specialMeals ?? 0,
         healthyDrinks: createSubscriptionDto.healthyDrinks ?? 0,
         generateMeals: createSubscriptionDto.generateMeals ?? 0,
         dayOfTheMonth: createSubscriptionDto.dayOfTheMonth ?? now.getDate(),
+        rukusubscriptionID: createSubscriptionDto.rukusubscriptionID,
       };
-
+      console.log('subscription data ', subscriptionData);
       const created = new this.subscriptionModel(subscriptionData);
 
       const savedSubscription = await created.save();
+      console.log('subscribed save ', savedSubscription);
       await this.usersService.update(userId, { isActive: true });
-      await this.userProfileService.update(userId, { subscriptionId: savedSubscription._id as Types.ObjectId });
+      await this.userProfileService.update(userId, {
+        subscriptionId: savedSubscription._id as Types.ObjectId,
+      });
 
       return savedSubscription;
     } catch (error) {
@@ -77,7 +93,9 @@ export class SubscriptionService {
       .findOne({ userId: new Types.ObjectId(userId) })
       .exec();
     if (!subscription) {
-      throw new NotFoundException(`No subscription found for userId: ${userId}`);
+      throw new NotFoundException(
+        `No subscription found for userId: ${userId}`,
+      );
     }
     return subscription;
   }
@@ -86,16 +104,17 @@ export class SubscriptionService {
     userId: string,
     updateSubscriptionDto: UpdateSubscriptionDto,
   ): Promise<Subscription> {
-
     const subscriptionData = {
-        subscriptionTypeId: new Types.ObjectId(updateSubscriptionDto.subscriptionTypeId),
-        status: updateSubscriptionDto.status,
-        dateStarted: updateSubscriptionDto.dateStarted,
-        mealPlans: updateSubscriptionDto.mealPlans,
-        specialMeals: updateSubscriptionDto.specialMeals,
-        healthyDrinks: updateSubscriptionDto.healthyDrinks,
-        generateMeals: updateSubscriptionDto.generateMeals,
-        dayOfTheMonth: updateSubscriptionDto.dayOfTheMonth,
+      subscriptionTypeId: new Types.ObjectId(
+        updateSubscriptionDto.subscriptionTypeId,
+      ),
+      status: updateSubscriptionDto.status,
+      dateStarted: updateSubscriptionDto.dateStarted,
+      mealPlans: updateSubscriptionDto.mealPlans,
+      specialMeals: updateSubscriptionDto.specialMeals,
+      healthyDrinks: updateSubscriptionDto.healthyDrinks,
+      generateMeals: updateSubscriptionDto.generateMeals,
+      dayOfTheMonth: updateSubscriptionDto.dayOfTheMonth,
     };
 
     const updatedSubscription = await this.subscriptionModel
@@ -107,28 +126,98 @@ export class SubscriptionService {
       .exec();
 
     if (!updatedSubscription) {
-      throw new NotFoundException(`No subscription found for userId: ${userId}`);
+      throw new NotFoundException(
+        `No subscription found for userId: ${userId}`,
+      );
     }
-    
+
     return updatedSubscription;
   }
 
   async delete(userId: string): Promise<Subscription> {
+    const subscriptionID = this.configService.get<string>(
+      'FREMIUM_SUBSCRIPTION_ID',
+    );
+    const rukuURL = this.configService.get<string>('RUKU_API_URL');
+
+    //get the information of the freemium subscription
+    const subscriptiontypeFree =
+      await this.subscriptionTypeModel.findById(subscriptionID);
+    console.log('this is the subscription free ', subscriptiontypeFree);
+    if (!subscriptiontypeFree) {
+      throw new NotFoundException('No freemium subscription found');
+    }
+
+    // cancel the subscription in Rukupay
+    const subscriptionToDelete = await this.subscriptionModel.findOne({
+      userId: new Types.ObjectId(userId),
+    });
+    console.log(
+      'this is the subscription of ruku ',
+      subscriptionToDelete?.rukusubscriptionID,
+    );
+
+    try {
+      let config = {
+        method: 'delete',
+        maxBodyLength: Infinity,
+        url: `${rukuURL}/stripe/subscriptionPeriod/${subscriptionToDelete?.rukusubscriptionID}`,
+        headers: {},
+      };
+
+      const responseDelete = await axios
+        .request(config)
+        .then((response) => {
+          console.log(JSON.stringify(response.data));
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    } catch (error) {}
+
+    //delete the actual user subscription
     const deletedSubscription = await this.subscriptionModel
       .findOneAndDelete({ userId: new Types.ObjectId(userId) })
       .exec();
 
     if (!deletedSubscription) {
-      throw new NotFoundException(`No subscription found for userId: ${userId}`);
+      throw new NotFoundException(
+        `No subscription found for userId: ${userId}`,
+      );
     }
 
-    await this.userProfileService.update(userId, { subscriptionId: "" as any });
+    const now = new Date();
+    const formattedDate = now.toISOString().split('T')[0];
+
+    //create a new subscription for the user with the freemium subscription
+    const subscriptionData = {
+      userId: new Types.ObjectId(userId),
+      subscriptionTypeId: new Types.ObjectId(subscriptiontypeFree.id),
+      status: true,
+      dateStarted: formattedDate, //YYYY-MM-DD format
+      mealPlans: 0,
+      specialMeals: 0,
+      healthyDrinks: 0,
+      generateMeals: 0,
+      dayOfTheMonth: now.getDay(),
+      rukuSubscriptionId: '',
+    };
+
+    //create the new subscription
+    const created = new this.subscriptionModel(subscriptionData);
+
+    //update the subscription of the user in the profile to a free subscription
+    await this.userProfileService.update(userId, {
+      subscriptionId: created.id as any,
+    });
 
     return deletedSubscription;
   }
 
   async verifySubscriptionIsAvailable(userId: string): Promise<void> {
-    const profile = await this.subscriptionModel.findOne({ userId: new Types.ObjectId(userId) }).exec();
+    const profile = await this.subscriptionModel
+      .findOne({ userId: new Types.ObjectId(userId) })
+      .exec();
     if (profile) {
       throw new ConflictException('User subscription is already registered');
     }
