@@ -35,7 +35,7 @@ export class Subscription {
   generateMeals: number;
 
   @Prop()
-  rukusubscriptionID:string;
+  rukusubscriptionID:string;  
 }
 
 export const SubscriptionSchema = SchemaFactory.createForClass(Subscription);

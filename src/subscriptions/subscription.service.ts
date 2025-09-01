@@ -69,12 +69,13 @@ export class SubscriptionService {
         healthyDrinks: createSubscriptionDto.healthyDrinks ?? 0,
         generateMeals: createSubscriptionDto.generateMeals ?? 0,
         dayOfTheMonth: createSubscriptionDto.dayOfTheMonth ?? now.getDate(),
-        rukuSubscriptionId: createSubscriptionDto.rukusubscriptionID,
+        rukusubscriptionID: createSubscriptionDto.rukusubscriptionID,
       };
-
+      console.log('subscription data ', subscriptionData);
       const created = new this.subscriptionModel(subscriptionData);
 
       const savedSubscription = await created.save();
+      console.log('subscribed save ', savedSubscription);
       await this.usersService.update(userId, { isActive: true });
       await this.userProfileService.update(userId, {
         subscriptionId: savedSubscription._id as Types.ObjectId,
