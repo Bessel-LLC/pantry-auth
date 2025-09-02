@@ -134,16 +134,19 @@ export class SubscriptionService {
     return updatedSubscription;
   }
 
-  async delete(userId: string): Promise<Subscription> {
+  async delete(userId: string): Promise<Subscription | any> {
     const subscriptionID = this.configService.get<string>(
       'FREMIUM_SUBSCRIPTION_ID',
     );
+    console.log('susbcription id ', subscriptionID);
     const rukuURL = this.configService.get<string>('RUKU_API_URL');
+    console.log('ruku api url ', rukuURL);
 
     //get the information of the freemium subscription
     const subscriptiontypeFree =
       await this.subscriptionTypeModel.findById(subscriptionID);
     console.log('this is the subscription free ', subscriptiontypeFree);
+
     if (!subscriptiontypeFree) {
       throw new NotFoundException('No freemium subscription found');
     }
@@ -156,6 +159,7 @@ export class SubscriptionService {
       'this is the subscription of ruku ',
       subscriptionToDelete?.rukusubscriptionID,
     );
+    console.log('this is the subscription complete', subscriptionToDelete);
 
     try {
       let config = {
@@ -165,53 +169,69 @@ export class SubscriptionService {
         headers: {},
       };
 
-      const responseDelete = await axios
-        .request(config)
-        .then((response) => {
-          console.log(JSON.stringify(response.data));
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    } catch (error) {}
+      const responseDelete = await axios.request(config);
 
-    //delete the actual user subscription
-    const deletedSubscription = await this.subscriptionModel
-      .findOneAndDelete({ userId: new Types.ObjectId(userId) })
-      .exec();
+      console.log('response of subscription delete ', responseDelete);
 
-    if (!deletedSubscription) {
-      throw new NotFoundException(
-        `No subscription found for userId: ${userId}`,
-      );
+      //delete the actual user subscription
+      const deletedSubscription = await this.subscriptionModel
+        .findOneAndDelete({ userId: new Types.ObjectId(userId) })
+        .exec();
+
+      if (!deletedSubscription) {
+        throw new NotFoundException(
+          `No subscription found for userId: ${userId}`,
+        );
+      }
+
+      const now = new Date();
+      const formattedDate = now.toISOString().split('T')[0];
+
+      //create a new subscription for the user with the freemium subscription
+      const subscriptionData = {
+        userId: new Types.ObjectId(userId),
+        subscriptionTypeId: new Types.ObjectId(subscriptionID),
+        status: true,
+        dateStarted: formattedDate, //YYYY-MM-DD format
+        mealPlans: 0,
+        specialMeals: 0,
+        healthyDrinks: 0,
+        generateMeals: 0,
+        dayOfTheMonth: now.getDay(),
+        rukusubscriptionID: new Types.ObjectId(subscriptionID),
+      };
+
+      //create the new subscription
+      const created = new this.subscriptionModel(subscriptionData);
+      console.log('created new subscription ', created);
+
+
+      console.log('subscription data ', subscriptionData);
+
+      const savedSubscription = await created.save();
+
+      console.log('saved ', savedSubscription);
+
+      //update the subscription of the user in the profile to a free subscription
+     const profileUpdated=  await this.userProfileService.update(userId, {
+        subscriptionId: created.id as any,
+      });
+
+      console.log('updated profiel ', profileUpdated);
+
+      return {
+        code: '01',
+        message: 'Subsciption cancelled',
+        return: created,
+      };
+    } catch (error) {
+      console.log('Error while delete ', error);
     }
-
-    const now = new Date();
-    const formattedDate = now.toISOString().split('T')[0];
-
-    //create a new subscription for the user with the freemium subscription
-    const subscriptionData = {
-      userId: new Types.ObjectId(userId),
-      subscriptionTypeId: new Types.ObjectId(subscriptiontypeFree.id),
-      status: true,
-      dateStarted: formattedDate, //YYYY-MM-DD format
-      mealPlans: 0,
-      specialMeals: 0,
-      healthyDrinks: 0,
-      generateMeals: 0,
-      dayOfTheMonth: now.getDay(),
-      rukuSubscriptionId: '',
+    return {
+      code: '02',
+      message: 'Subscription not cancelled',
+      return: null,
     };
-
-    //create the new subscription
-    const created = new this.subscriptionModel(subscriptionData);
-
-    //update the subscription of the user in the profile to a free subscription
-    await this.userProfileService.update(userId, {
-      subscriptionId: created.id as any,
-    });
-
-    return deletedSubscription;
   }
 
   async verifySubscriptionIsAvailable(userId: string): Promise<void> {
