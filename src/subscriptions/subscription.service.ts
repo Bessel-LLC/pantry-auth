@@ -21,6 +21,7 @@ import {
   SubscriptionTypeDocument,
 } from 'src/subscription-types/entities/subscription-type.entity';
 import axios from 'axios';
+import { CLIENT_RENEG_LIMIT } from 'tls';
 
 @Injectable()
 export class SubscriptionService {
@@ -100,13 +101,12 @@ export class SubscriptionService {
 
     const user = await this.usersService.findOne(userId);
     console.log('user found! ', user);
-      if (!user) {
-        throw new NotFoundException(`No user found with userId: ${userId}`);
-      }
-      console.log('this is the user ', user);
+    if (!user) {
+      throw new NotFoundException(`No user found with userId: ${userId}`);
+    }
+    console.log('this is the user ', user);
 
     try {
-      
       const userProfile = await this.userProfileService.findByUserId(userId);
       console.log('user profile found ', userProfile);
       if (!userProfile) {
@@ -127,7 +127,7 @@ export class SubscriptionService {
         const deletedSubscription = await this.subscriptionModel
           .findOneAndDelete({ userId: new Types.ObjectId(userId) })
           .exec();
-          console.log('resultado de borrar cuenta ', deletedSubscription);
+        console.log('resultado de borrar cuenta ', deletedSubscription);
         if (
           actualSubscription.subscriptionTypeId !=
           new Types.ObjectId(subscriptionFreeID)
@@ -237,7 +237,7 @@ export class SubscriptionService {
     return updatedSubscription;
   }
 
-  async delete(userId: string): Promise<Subscription> {
+  async delete(userId: string): Promise<Subscription | any> {
     const subscriptionID = this.configService.get<string>(
       'FREMIUM_SUBSCRIPTION_ID',
     );
@@ -269,14 +269,11 @@ export class SubscriptionService {
       };
 
       const responseDelete = await axios
-        .request(config)
-        .then((response) => {
-          console.log(JSON.stringify(response.data));
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    } catch (error) {}
+        .request(config);
+        console.log('this is the result of delete subscription ', responseDelete);
+    } catch (error) {
+      console.log('error deleting subscription ', error);
+    }
 
     //delete the actual user subscription
     const deletedSubscription = await this.subscriptionModel
@@ -295,7 +292,7 @@ export class SubscriptionService {
     //create a new subscription for the user with the freemium subscription
     const subscriptionData = {
       userId: new Types.ObjectId(userId),
-      subscriptionTypeId: new Types.ObjectId(subscriptiontypeFree.id),
+      subscriptionTypeId: new Types.ObjectId(subscriptionID),
       status: true,
       dateStarted: formattedDate, //YYYY-MM-DD format
       mealPlans: 0,
@@ -303,18 +300,25 @@ export class SubscriptionService {
       healthyDrinks: 0,
       generateMeals: 0,
       dayOfTheMonth: now.getDay(),
-      rukuSubscriptionId: '',
+      rukusubscriptionID: new Types.ObjectId(subscriptionID), ///temporal tu complete the type
     };
 
     //create the new subscription
     const created = new this.subscriptionModel(subscriptionData);
+    console.log('created ', created)
+    const newSubscription = await created.save();
 
     //update the subscription of the user in the profile to a free subscription
     await this.userProfileService.update(userId, {
       subscriptionId: created.id as any,
     });
 
-    return deletedSubscription;
+    return {
+      code: '01',
+      success:true,
+      message: 'subscribed to free',
+      subscription: newSubscription,
+    };
   }
 
   async verifySubscriptionIsAvailable(userId: string): Promise<void> {
