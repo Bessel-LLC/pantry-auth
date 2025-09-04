@@ -88,6 +88,109 @@ export class SubscriptionService {
     }
   }
 
+  //subscribe
+  async subscribe(
+    userId: string,
+    createSubscriptionDto: CreateSubscriptionDto,
+  ): Promise<Subscription | any> {
+    const subscriptionFreeID = this.configService.get<string>(
+      'FREMIUM_SUBSCRIPTION_ID',
+    );
+    const rukuURL = this.configService.get<string>('RUKU_API_URL');
+
+    const user = await this.usersService.findOne(userId);
+    console.log('user found! ', user);
+      if (!user) {
+        throw new NotFoundException(`No user found with userId: ${userId}`);
+      }
+      console.log('this is the user ', user);
+
+    try {
+      
+      const userProfile = await this.userProfileService.findByUserId(userId);
+      console.log('user profile found ', userProfile);
+      if (!userProfile) {
+        throw new NotFoundException(
+          `No user profile found with userId: ${userId}`,
+        );
+      }
+
+      //revisar si hay una subscripcion previa
+
+      const actualSubscription = await this.subscriptionModel
+        .findOne({ userId: new Types.ObjectId(userId) })
+        .exec();
+      console.log('actual subscription ', actualSubscription);
+      //eliminar la subscripcion anterior
+      if (actualSubscription) {
+        //eliminate in the database
+        const deletedSubscription = await this.subscriptionModel
+          .findOneAndDelete({ userId: new Types.ObjectId(userId) })
+          .exec();
+          console.log('resultado de borrar cuenta ', deletedSubscription);
+        if (
+          actualSubscription.subscriptionTypeId !=
+          new Types.ObjectId(subscriptionFreeID)
+        ) {
+          console.log('no tiene una subscription free');
+          try {
+            let config = {
+              method: 'delete',
+              maxBodyLength: Infinity,
+              url: `${rukuURL}/stripe/subscriptionPeriod/${actualSubscription?.rukusubscriptionID}`,
+              headers: {},
+            };
+
+            const responseDelete = await axios.request(config);
+            console.log('deleted from rukupay ', responseDelete);
+          } catch (error) {
+            return {
+              code: '02',
+              message: 'Error deleting in rukupay',
+              return: error,
+            };
+          }
+        }
+      }
+
+      const now = new Date();
+      const formattedDate = now.toISOString().split('T')[0];
+
+      const subscriptionData = {
+        userId: new Types.ObjectId(userId),
+        subscriptionTypeId: new Types.ObjectId(
+          createSubscriptionDto.subscriptionTypeId,
+        ),
+        status: createSubscriptionDto.status ?? true,
+        dateStarted: createSubscriptionDto.dateStarted ?? formattedDate, //YYYY-MM-DD format
+        mealPlans: createSubscriptionDto.mealPlans ?? 0,
+        specialMeals: createSubscriptionDto.specialMeals ?? 0,
+        healthyDrinks: createSubscriptionDto.healthyDrinks ?? 0,
+        generateMeals: createSubscriptionDto.generateMeals ?? 0,
+        dayOfTheMonth: createSubscriptionDto.dayOfTheMonth ?? now.getDate(),
+        rukusubscriptionID: createSubscriptionDto.rukusubscriptionID,
+      };
+      console.log('subscription data ', subscriptionData);
+      const created = new this.subscriptionModel(subscriptionData);
+
+      const savedSubscription = await created.save();
+      console.log('subscribed save ', savedSubscription);
+      await this.usersService.update(userId, { isActive: true });
+      await this.userProfileService.update(userId, {
+        subscriptionId: savedSubscription._id as Types.ObjectId,
+      });
+
+      return {
+        code: '01',
+        message: 'Subscription updated successfully!',
+        return: savedSubscription,
+      };
+    } catch (error) {
+      console.error('Error creating subscription:', error);
+      throw error;
+    }
+  }
+
   async findByUserId(userId: string): Promise<Subscription> {
     const subscription = await this.subscriptionModel
       .findOne({ userId: new Types.ObjectId(userId) })

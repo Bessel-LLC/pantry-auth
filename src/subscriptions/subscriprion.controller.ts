@@ -18,6 +18,17 @@ export class SubscriptionController {
   ) {
     return this.subscriprionService.create(userId, createSubscriptionDto);
   }
+  //subscribe
+
+  @Post('subscribe/:userId')
+  @ApiOperation({ summary: 'Create a new subscriprion for user, replace other' })
+  @ApiParam({ name: 'userId', description: 'User ID (Mongo ID)' })
+  subcribe(
+    @Param('userId') userId: string,
+    @Body() createSubscriptionDto: CreateSubscriptionDto,
+  ) {
+    return this.subscriprionService.subscribe(userId, createSubscriptionDto);
+  }
 
   @Get(':userId')
   @ApiOperation({ summary: 'Get subscriprion by user ID' })
