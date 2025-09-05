@@ -128,9 +128,13 @@ export class SubscriptionService {
           .findOneAndDelete({ userId: new Types.ObjectId(userId) })
           .exec();
         console.log('resultado de borrar cuenta ', deletedSubscription);
+        console.log(
+          'validation ',
+          actualSubscription.subscriptionTypeId.toString() !=
+            subscriptionFreeID,
+        );
         if (
-          actualSubscription.subscriptionTypeId !=
-          new Types.ObjectId(subscriptionFreeID)
+          actualSubscription.subscriptionTypeId.toString() != subscriptionFreeID
         ) {
           console.log('no tiene una subscription free');
           try {
@@ -151,6 +155,8 @@ export class SubscriptionService {
             };
           }
         }
+      } else {
+        console.log('no tiene una subscripcion previa, es decir es cuenta gratis');
       }
 
       const now = new Date();
@@ -161,13 +167,13 @@ export class SubscriptionService {
         subscriptionTypeId: new Types.ObjectId(
           createSubscriptionDto.subscriptionTypeId,
         ),
-        status: createSubscriptionDto.status ?? true,
-        dateStarted: createSubscriptionDto.dateStarted ?? formattedDate, //YYYY-MM-DD format
-        mealPlans: createSubscriptionDto.mealPlans ?? 0,
-        specialMeals: createSubscriptionDto.specialMeals ?? 0,
-        healthyDrinks: createSubscriptionDto.healthyDrinks ?? 0,
-        generateMeals: createSubscriptionDto.generateMeals ?? 0,
-        dayOfTheMonth: createSubscriptionDto.dayOfTheMonth ?? now.getDate(),
+        status: true,
+        dateStarted: formattedDate, //YYYY-MM-DD format
+        mealPlans: 0,
+        specialMeals: 0,
+        healthyDrinks: 0,
+        generateMeals: 0,
+        dayOfTheMonth: now.getDay(),
         rukusubscriptionID: createSubscriptionDto.rukusubscriptionID,
       };
       console.log('subscription data ', subscriptionData);
@@ -268,9 +274,8 @@ export class SubscriptionService {
         headers: {},
       };
 
-      const responseDelete = await axios
-        .request(config);
-        console.log('this is the result of delete subscription ', responseDelete);
+      const responseDelete = await axios.request(config);
+      console.log('this is the result of delete subscription ', responseDelete);
     } catch (error) {
       console.log('error deleting subscription ', error);
     }
@@ -294,19 +299,20 @@ export class SubscriptionService {
       userId: new Types.ObjectId(userId),
       subscriptionTypeId: new Types.ObjectId(subscriptionID),
       status: true,
-      dateStarted: formattedDate, //YYYY-MM-DD format
+      dateStarted: now, //YYYY-MM-DD format
       mealPlans: 0,
       specialMeals: 0,
       healthyDrinks: 0,
       generateMeals: 0,
-      dayOfTheMonth: now.getDay(),
-      rukusubscriptionID: new Types.ObjectId(subscriptionID), ///temporal tu complete the type
+      dayOfTheMonth: now.getDate(),
+      rukusubscriptionID: subscriptionID, ///temporal tu complete the type
     };
 
     //create the new subscription
     const created = new this.subscriptionModel(subscriptionData);
-    console.log('created ', created)
+    console.log('created ', created);
     const newSubscription = await created.save();
+    console.log(newSubscription);
 
     //update the subscription of the user in the profile to a free subscription
     await this.userProfileService.update(userId, {
@@ -315,7 +321,7 @@ export class SubscriptionService {
 
     return {
       code: '01',
-      success:true,
+      success: true,
       message: 'subscribed to free',
       subscription: newSubscription,
     };
