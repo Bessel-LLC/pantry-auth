@@ -58,7 +58,7 @@ export class UserProfileService {
           userId: new Types.ObjectId(userId),
           ...createUserProfileDto,
           ruku_client_id: response.id,
-        });
+          languages:createUserProfileDto.language        });
         console.log('created ', created);
         const savedProfile = await created.save();
         await this.usersService.update(userId, {
